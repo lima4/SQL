@@ -95,5 +95,59 @@ SELECT ename, deptno, sal FROM emp
 ORDER BY 2 asc, 3 desc;
 
 -- 007
+-- 조건을 통해서 뽑기 위해서는 WHERE 을 사용하면 된다.
+SELECT ename, sal, job FROM emp
+WHERE sal = 3000;
 
+/*
+> 크다
+< 작다
+>= 크거나 같다
+<= 작거나 같다
+!= 같지 않다
+^= 같지 않다
+<> 같지 않다
+IS NULL NULL값인지 여부
+IN 값 리스트 중 일치하는 값 검색
+BETWEEN AND ~ 사이에 있는
+LIKE 일치하는 문자 패턴 검색
+*/
 
+--008
+
+-- ename이 SCOTT인 ename, sal, job, hiredate, deptno 출력
+SELECT ename, sal, job, hiredate, deptno FROM emp
+WHERE ename = 'SCOTT';
+
+-- hiredate가 81/11/17인 데이터의 ename, hiredate 출력
+SELECT ename, hiredate FROM emp
+WHERE hiredate = '81/11/17';
+
+-- 접속한 세션의 날짜 형식은 NSL_SESSION_PARAMETERS를 통해서 조회한다.
+-- RR은 년도, MM은 달, DD는 일
+SELECT * 
+FROM NLS_SESSION_PARAMETERS
+WHERE PARAMETER = 'NLS_DATE_FORMAT';
+
+-- 009
+
+-- 연봉이 3600이상인 사원들의 이름과 연봉을 출력한다.
+SELECT ename, sal*12 as 연봉 FROM emp
+WHERE sal*12 >=3600;
+
+-- NULL이 더해지면 값은 NULL로 생성된다.
+-- 값이 없는 컬럼인 comm 과 salary 컬럼을 더한 컬럼 출력하기 
+SELECT ename, sal, comm, sal+comm FROM emp
+WHERE deptno = 10;
+
+/* NVL함수를 사용하면 NULL값을 처리할 수 있다.
+NULL 값을 0으로 출력하여 산술연산을 가능하게 한다.
+*/
+SELECT sal + NVL(comm, 0) FROM emp 
+WHERE ename = 'KING';
+
+--010
+
+--월급이 1200 이하인 사원들의 이름과 월급, 직업, 부서 번호를 출력
+SELECT ename, sal, job, deptno FROM emp
+WHERE sal <=1200;
