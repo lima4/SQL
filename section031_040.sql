@@ -118,7 +118,7 @@ NVL2 함수는 ('값' NOTNULL, NULL) 로 생각하면 된다.
 SELECT ename, sal, comm, NVL2(comm, sal+comm, sal) FROM emp 
 WHERE job IN ('SALESMAN', 'ANALYST');
 
---034 IF문을 SQL로 구성하기
+--034 IF문을 SQL로 구현하기
 
 -- 부서번호가 10번이면 300, 20번이면 400, 10,20번이 아니라면 0을 출력한다. 
 SELECT ename, deptno, DECODE(deptno, 10, 300, 20, 400, 0) as "보너스" FROM emp;
@@ -133,6 +133,121 @@ FROM emp;
 -- elseif 조건을 생략하고 바로 else구문으로 사용가능하다.
 SELECT ename, job, DECODE(job, 'SALESMAN', 5000, 2000) FROM emp;
 
+--035 IF문을 SQL로 구현하기
+-- 이름, 직업, 월급, 보너스를 출력하는 쿼리이다. 
+-- 만약 월급이 3000이상이면 보너스는 500, 2000이상이면 보너스는 300, 1000이상이면 보너스는 200 나머지는 0으로 출력한다.
+-- CASE문이 DECODE와 다른 점은 DECODE는 등호(=)만 비교 가능하지만 CASE는 부등호, 등호 모두 가능하다.
+SELECT ename, job,sal , CASE WHEN sal >= 3000 THEN 500
+                             WHEN sal >= 2000 THEN 300
+                             WHEN sal >= 1000 THEN 200
+                             ELSE  0 END AS BONUS
+   FROM emp
+   WHERE job IN ('SALESMAN', 'ANALYST');
 
+-- 이름, 직업, 커미션, 보너스를 출력한다. 보너스는 커미션이 NULL이면 500을 출력하고 NULL이 아니면 0을 출력한다.
+SELECT ename, job, comm, CASE WHEN comm is null THEN 500
+                              ELSE 0 END  BONUS
+   FROM emp
+   WHERE job in ('SALESMAN', 'ANALYST');
+   
+-- 보너스를 출력할 때 직업이 SALESMAN, ANALYST이면 500을 출력하고 직업이 CLERK, MANAGER이면 400을 출력하고 나머지 직업은 0을 출력한다.
+SELECT ename, job, CASE WHEN job in ('SALESMAN', 'ANALYST') THEN 500
+                        WHEN job in ('CLERK', 'MANAGER') THEN 400
+                        ELSE 0 END AS BONUS
+   FROM emp;
+   
+--036 최대값 출력하기
+
+-- 사원 테이블에서 최대 월급을 출력한다ㅣ
+SELECT MAX(sal) FROM emp;
+
+-- 직업이 SALESMAN인 사원들 중 최대 월급을 출력
+SELECT MAX(sal) FROM emp 
+WHERE job='SALESMAN';
+
+-- 직업이 SALESMAN인 사원들 중에서 최대 월급을 직업과 같이 출력
+-- ERROR가 나온다. 이는 job컬럼은 여러개의 행을 출력하려고 하나, MAX(SAL)은 하나의 행만을 출력하기 때문이다.
+SELECT job, MAX(sal) FROM emp
+WHERE job='SALESMAN';
+
+-- GROUPBY절을 사용하기(위와 같은 상황 발생시 방지) 
+SELECT job, MAX(SAL) 
+   FROM emp
+   WHERE job = 'SALESMAN'
+   GROUP BY job;
+
+--037 최소값 출력하기
+
+-- 직업이 SALESMAN인 사원들 중 최소 월급을 출력해 보겠습니다
+SELECT MIN(sal)
+   FROM emp
+   WHERE job = 'SALESMAN';
+   
+-- 직업과 직업별 최소 월급을 출력하는데 ORDER BY절을 사용하여 최소 월급이 높은 것부터 출력
+SELECT job, MIN(sal) as 최소값
+   FROM emp
+   GROUP BY job
+   ORDER BY 최소값 DESC;
+
+-- 함수를 사용하게 되면 WHERE절의 조건이 거짓이어도 결과는 항상 출력된다.
+-- 거짓인 WHERE절 사용시 null 출력
+SELECT MIN(sal)
+   FROM emp
+   WHERE 1 = 2;
+
+-- 직업, 직업별 최소 월급, 직업에서 SALESMAN은 제외하고 출력, 직업별 최소 월급이 높은 순으로 출력
+SELECT job, MIN(sal)
+   FROM emp
+   WHERE job != 'SALESMAN'
+   GROUP BY job
+   ORDER BY MIN(sal) DESC;
+   
+-- 038 평균값 출력하기
+
+-- 사원 테이블의 평균 월급을 출력
+-- 조심해야할 점은 만약 comm 컬럼에 NULL값이 6개 Null이 아닌 값 4개라면 
+-- NULL 값을 제외한 4개의 컬럼의 평균이다. 전체의 평균이 아니다.
+SELECT AVG(comm)
+   FROM emp;
+
+-- NULL 값을 0 으로 치환하여 평균값 구하기 반올림해주기
+SELECT ROUND(AVG(NVL(comm, 0)))
+   FROM emp;
+   
+-- 039 TOTAL 갑 출력하기
+
+-- 부서 번호와 부서 번호별 토탈 월급을 출력
+SELECT deptno, SUM(sal)
+   FROM emp
+   GROUP by deptno;
+   
+-- 직업과 직업별 토탈 월급을 출력하는데 직업별 토탈 월급이 높은순으로 출력
+SELECT job, SUM(sal) as "토탈 월급"
+   FROM emp
+   GROUP BY job
+   ORDER BY "토탈 월급" DESC;
+
+-- 직업과 직업별 토탈 월급을 출력하는데 직업별 토탈 월급이 4000 이상인 것만 출력
+-- WHERE절에 그룹 함수를 사용하면 에러가 발생한다. 
+SELECT job, SUM(sal)
+  FROM emp
+  WHERE sum(sal) >= 4000
+  GROUP BY job; 
+
+-- 그룹함수에 조건을 줄 떄는 HAVING절을 사용해야 한다.
+SELECT job, SUM(sal)
+   FROM emp
+   GROUP BY job
+   HAVING sum(sal) >=4000;
+
+-- 040 건수 출력하기
+
+-- 사원 테이블 전체 사원수 출력하기
+SELECT COUNT(empno)
+   FROM emp;
+   
+-- 그룹함수는 NULL값은 무시한다.
+SELECT COUNT(comm)
+FROM emp;
 
 
